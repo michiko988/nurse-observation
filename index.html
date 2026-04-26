@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="夜間不穏記録">
+<title>夜間不穏 観察シート | Mediluna</title>
+<style>
+  :root {
+    --red: #C0392B;
+    --amber: #E8A838;
+    --green: #5A8A68;
+    --blue: #3A5F8A;
+    --bg: #F0F0EC;
+    --card: #FFFFFF;
+    --border: #E0DDD8;
+    --text: #2A2A2A;
+    --sub: #888880;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+/* ナビ */
+.nav {
+position: sticky; top: 0; z-index: 100;
+background: var(–card);
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+padding: 0 16px;
+height: 56px;
+gap: 0;
+}
+.nav-tab {
+flex: 1; height: 56px;
+display: flex; align-items: center; justify-content: center;
+font-size: 13px; font-weight: 600; color: var(–sub);
+border: none; background: none; cursor: pointer;
+border-bottom: 3px solid transparent;
+transition: all 0.2s; font-family: inherit;
+gap: 5px;
+}
+.nav-tab.active { color: var(–red); border-bottom-color: var(–red); }
+
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
+
+/* カード */
+.card {
+background: var(–card);
+border-radius: var(–radius);
+border: 1px solid var(–border);
+margin-bottom: 12px;
+overflow: hidden;
+box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.card-head {
+padding: 11px 14px;
+display: flex; align-items: center; gap: 8px;
+border-bottom: 1px solid var(–border);
+}
+.card-head .time {
+font-size: 14px; font-weight: 800;
+font-variant-numeric: tabular-nums;
+letter-spacing: -0.02em;
+color: var(–text);
+}
+.card-head .badge {
+font-size: 10px; font-weight: 700;
+padding: 2px 7px; border-radius: 20px;
+letter-spacing: 0.02em;
+}
+.card-body { padding: 13px 14px; display: flex; flex-direction: column; gap: 12px; }
+
+/* セクションラベル */
+.sec-label {
+font-size: 10px; font-weight: 700;
+color: var(–sub); letter-spacing: 0.06em;
+margin-bottom: 6px;
+text-transform: uppercase;
+}
+
+/* 不穏レベルボタン */
+.level-row { display: flex; gap: 6px; }
+.level-btn {
+flex: 1; padding: 8px 4px;
+border-radius: 8px;
+border: 1.5px solid var(–border);
+background: #fafaf8;
+cursor: pointer; font-family: inherit;
+transition: all 0.15s;
+text-align: center;
+}
+.level-btn .emoji { font-size: 18px; line-height: 1.2; }
+.level-btn .lbl { font-size: 11px; color: var(–sub); font-weight: 500; margin-top: 2px; }
+.level-btn.active-0 { border-color: var(–green); background: #5A8A6812; }
+.level-btn.active-0 .lbl { color: var(–green); font-weight: 700; }
+.level-btn.active-1 { border-color: var(–amber); background: #E8A83812; }
+.level-btn.active-1 .lbl { color: var(–amber); font-weight: 700; }
+.level-btn.active-2 { border-color: #E07030; background: #E0703012; }
+.level-btn.active-2 .lbl { color: #E07030; font-weight: 700; }
+.level-btn.active-3 { border-color: var(–red); background: #C0392B12; }
+.level-btn.active-3 .lbl { color: var(–red); font-weight: 700; }
+
+/* 血圧 */
+.bp-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+padding: 5px 10px; border-radius: 20px;
+border: 1.5px solid var(–border);
+background: #fafaf8;
+font-size: 11px; font-weight: 500; color: var(–sub);
+cursor: pointer; font-family: inherit;
+transition: all 0.15s;
+}
+.chip.active-bp { border-color: var(–red); background: #C0392B12; color: var(–red); font-weight: 700; }
+.chip.active-g { border-color: var(–green); background: #5A8A6812; color: var(–green); font-weight: 700; }
+.chip.active-a { border-color: var(–amber); background: #E8A83812; color: var(–amber); font-weight: 700; }
+.chip.active-b { border-color: var(–blue); background: #3A5F8A12; color: var(–blue); font-weight: 700; }
+
+/* テキストエリア */
+textarea {
+width: 100%; border-radius: 8px;
+border: 1.5px solid var(–border);
+padding: 8px 10px; font-size: 13px;
+font-family: inherit; color: var(–text);
+resize: none; outline: none;
+background: #fafaf8; line-height: 1.5;
+}
+textarea:focus { border-color: var(–blue); }
+
+/* 入力フィールド */
+input[type=text], input[type=date] {
+width: 100%; border-radius: 8px;
+border: 1.5px solid var(–border);
+padding: 8px 10px; font-size: 13px;
+font-family: inherit; color: var(–text);
+outline: none; background: #fafaf8;
+}
+input:focus { border-color: var(–blue); }
+
+/* サマリーカード */
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.summary-cell {
+background: var(–card); border-radius: 10px;
+border: 1px solid var(–border);
+padding: 10px 12px;
+}
+.summary-cell .s-label { font-size: 10px; color: var(–sub); margin-bottom: 3px; }
+.summary-cell .s-val { font-size: 13px; font-weight: 700; color: var(–text); }
+
+/* 保存ボタン */
+.save-btn {
+width: 100%; padding: 14px;
+border-radius: var(–radius);
+border: none;
+background: var(–red);
+color: #fff; font-size: 15px; font-weight: 700;
+cursor: pointer; font-family: inherit;
+transition: background 0.2s;
+margin-top: 8px;
+letter-spacing: 0.03em;
+}
+.save-btn:active { background: #a93226; }
+.save-btn.saved { background: var(–green); }
+
+/* 記録一覧 */
+.rec-item {
+background: var(–card);
+border-radius: var(–radius);
+border: 1px solid var(–border);
+padding: 13px 14px;
+margin-bottom: 10px;
+cursor: pointer;
+}
+.rec-item:active { background: #f5f5f3; }
+.rec-date { font-size: 14px; font-weight: 700; color: var(–text); }
+.rec-nurse { font-size: 12px; color: var(–sub); margin-top: 2px; }
+.rec-peak {
+display: inline-block;
+margin-top: 6px;
+font-size: 11px; font-weight: 700;
+padding: 2px 8px; border-radius: 20px;
+background: #C0392B18; color: var(–red);
+}
+.rec-meta { font-size: 11px; color: var(–sub); margin-top: 4px; }
+
+.empty { text-align: center; color: var(–sub); font-size: 13px; padding: 40px 20px; }
+
+/* ヘッダー */
+.page-head {
+background: var(–card);
+border-radius: var(–radius);
+padding: 14px 16px;
+margin-bottom: 14px;
+border: 1px solid var(–border);
+}
+.page-head .brand { font-size: 10px; color: var(–red); font-weight: 700; letter-spacing: 0.1em; margin-bottom: 2px; }
+.page-head .title { font-size: 19px; font-weight: 800; color: var(–text); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.form-group label { font-size: 10px; color: var(–sub); font-weight: 700; letter-spacing: 0.05em; display: block; margin-bottom: 5px; }
+
+/* 削除ボタン */
+.del-btn {
+float: right;
+background: none; border: 1px solid #ddd;
+border-radius: 6px; padding: 3px 8px;
+font-size: 11px; color: var(–sub);
+cursor: pointer; font-family: inherit;
+}
+.del-btn:active { background: #fee; color: var(–red); border-color: var(–red); }
+
+/* トースト */
+.toast {
+position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+background: #333; color: #fff;
+padding: 10px 20px; border-radius: 30px;
+font-size: 13px; font-weight: 600;
+opacity: 0; transition: opacity 0.3s;
+pointer-events: none; white-space: nowrap;
+z-index: 999;
+}
+.toast.show { opacity: 1; }
+
+.divider { height: 1px; background: var(–border); margin: 4px 0; }
+</style>
+
+</head>
+<body>
+
+<!-- ナビ -->
+
+<nav class="nav">
+  <button class="nav-tab active" onclick="switchTab('record')" id="tab-record">
+    ✏️ 記録
+  </button>
+  <button class="nav-tab" onclick="switchTab('history')" id="tab-history">
+    📋 履歴
+  </button>
+  <button class="nav-tab" onclick="switchTab('insight')" id="tab-insight">
+    📊 分析
+  </button>
+</nav>
+
+<!-- 記録ページ -->
+
+<div class="page active" id="page-record">
+  <div class="page-head">
+    <div class="brand">MEDILUNA 訪問看護</div>
+    <div class="title">夜間不穏 観察シート</div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>記録日</label>
+      <input type="date" id="rec-date">
+    </div>
+    <div class="form-group">
+      <label>担当ナース</label>
+      <input type="text" id="rec-nurse" placeholder="お名前">
+    </div>
+  </div>
+
+  <!-- サマリー -->
+
+  <div id="live-summary" class="summary-grid" style="display:none">
+    <div class="summary-cell">
+      <div class="s-label">不穏ピーク帯</div>
+      <div class="s-val" id="sum-peak">—</div>
+    </div>
+    <div class="summary-cell">
+      <div class="s-label">最高血圧帯</div>
+      <div class="s-val" id="sum-bp" style="color:var(--red)">—</div>
+    </div>
+    <div class="summary-cell">
+      <div class="s-label">不穏のきっかけ</div>
+      <div class="s-val" id="sum-trigger" style="color:var(--amber); font-size:11px">—</div>
+    </div>
+    <div class="summary-cell">
+      <div class="s-label">落ち着いたきっかけ</div>
+      <div class="s-val" id="sum-calm" style="color:var(--green); font-size:11px">—</div>
+    </div>
+  </div>
+
+  <div id="time-blocks"></div>
+
+<button class="save-btn" id="save-btn" onclick="saveRecord()">この記録を保存する</button>
+
+</div>
+
+<!-- 履歴ページ -->
+
+<div class="page" id="page-history">
+  <div class="page-head">
+    <div class="brand">MEDILUNA 訪問看護</div>
+    <div class="title">記録履歴</div>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- 分析ページ -->
+
+<div class="page" id="page-insight">
+  <div class="page-head">
+    <div class="brand">MEDILUNA 訪問看護</div>
+    <div class="title">パターン分析</div>
+  </div>
+  <div id="insight-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SLOTS = [
+  { id:"t1", time:"16:00〜17:00", tag:"帰宅直後", color:"var(--green)", colorKey:"g" },
+  { id:"t2", time:"17:00〜18:00", tag:"夕食・内服", color:"var(--green)", colorKey:"g" },
+  { id:"t3", time:"18:00〜18:50", tag:"⚡ 予防介入タイム", color:"var(--amber)", colorKey:"a" },
+  { id:"t4", time:"18:50〜20:00", tag:"🔴 不穏ピーク帯", color:"var(--red)", colorKey:"bp" },
+  { id:"t5", time:"20:00〜24:00", tag:"深夜 見守り", color:"var(--blue)", colorKey:"b" },
+  { id:"t6", time:"0:00〜5:00", tag:"夜間", color:"var(--blue)", colorKey:"b" },
+  { id:"t7", time:"5:00〜7:00", tag:"🟢 朝のケア", color:"var(--green)", colorKey:"g" },
+];
+
+const LEVELS = [
+  { v:0, e:"😊", l:"なし" },
+  { v:1, e:"😐", l:"軽度" },
+  { v:2, e:"😟", l:"中程度" },
+  { v:3, e:"😰", l:"強い" },
+];
+
+const BP_OPTS = ["測定せず","〜140","141〜160","161〜180","181〜200","200〜"];
+
+const BEHAVIORS = [
+  "室内を歩き回る","ソファに座る","テレビをつける",
+  "ベッド誘導拒否","トイレ誘導拒否","マッサージ拒否",
+  "声かけに反応あり","声かけ無反応","入眠",
+];
+
+const TRIGGERS = [
+  "暗くなった","スタッフが慌ただしかった","誘導・制止された",
+  "空腹だった","排泄の不快感","体位変換後","特に思い当たらない",
+];
+
+const CALMS = [
+  "ソファに座った","飲み物を飲んだ","並んで歩いた",
+  "声かけで落ち着いた","足底マッサージ","自然に入眠","その他",
+];
+
+// 状態
+let state = {};
+
+function initState() {
+  state = {};
+  SLOTS.forEach(s => {
+    state[s.id] = { agitation: null, bp: null, behaviors: [], triggers: [], calms: [], memo: "" };
+  });
+}
+
+function buildBlocks() {
+  const container = document.getElementById('time-blocks');
+  container.innerHTML = '';
+  SLOTS.forEach(slot => {
+    const d = state[slot.id];
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.id = 'block-' + slot.id;
+
+    // 不穏レベルHTML
+    const levelHTML = LEVELS.map(lv => `
+      <button class="level-btn ${d.agitation===lv.v ? 'active-'+lv.v : ''}"
+        onclick="setAgitation('${slot.id}',${lv.v})">
+        <div class="emoji">${lv.e}</div>
+        <div class="lbl">${lv.l}</div>
+      </button>`).join('');
+
+    // 血圧HTML
+    const bpHTML = BP_OPTS.map(bp => `
+      <button class="chip ${d.bp===bp ? 'active-bp' : ''}"
+        onclick="setBP('${slot.id}','${bp}')">${bp}</button>`).join('');
+
+    // 行動HTML
+    const bhHTML = BEHAVIORS.map(b => `
+      <button class="chip ${d.behaviors.includes(b) ? 'active-'+slot.colorKey : ''}"
+        onclick="toggleChip('${slot.id}','behaviors','${b}')">${b}</button>`).join('');
+
+    // トリガーHTML（t4のみ）
+    const trigHTML = slot.id === 't4' ? `
+      <div>
+        <div class="sec-label">不穏のきっかけ</div>
+        <div class="bp-row">${TRIGGERS.map(t => `
+          <button class="chip ${d.triggers.includes(t) ? 'active-a' : ''}"
+            onclick="toggleChip('${slot.id}','triggers','${t}')">${t}</button>`).join('')}
+        </div>
+      </div>` : '';
+
+    // 落ち着きHTML
+    const calmHTML = CALMS.map(c => `
+      <button class="chip ${d.calms.includes(c) ? 'active-g' : ''}"
+        onclick="toggleChip('${slot.id}','calms','${c}')">${c}</button>`).join('');
+
+    el.innerHTML = `
+      <div class="card-head" style="background:${slot.color}14; border-bottom:1px solid ${slot.color}30">
+        <span class="time">${slot.time}</span>
+        <span class="badge" style="background:${slot.color}20; color:${slot.color}">${slot.tag}</span>
+      </div>
+      <div class="card-body">
+        <div>
+          <div class="sec-label">不穏レベル</div>
+          <div class="level-row">${levelHTML}</div>
+        </div>
+        <div>
+          <div class="sec-label">血圧</div>
+          <div class="bp-row">${bpHTML}</div>
+        </div>
+        <div>
+          <div class="sec-label">観察された行動</div>
+          <div class="bp-row">${bhHTML}</div>
+        </div>
+        ${trigHTML}
+        <div>
+          <div class="sec-label">落ち着いたきっかけ</div>
+          <div class="bp-row">${calmHTML}</div>
+        </div>
+        <div>
+          <div class="sec-label">メモ・気づき</div>
+          <textarea rows="2" placeholder="声かけの内容、本人の言葉、気になったことなど..."
+            onchange="setMemo('${slot.id}',this.value)">${d.memo}</textarea>
+
+```
+    </div>
+  </div>`;
+container.appendChild(el);
+```
+
+});
+updateSummary();
+}
+
+function setAgitation(sid, val) {
+state[sid].agitation = state[sid].agitation === val ? null : val;
+buildBlocks();
+}
+function setBP(sid, val) {
+state[sid].bp = state[sid].bp === val ? null : val;
+buildBlocks();
+}
+function toggleChip(sid, field, val) {
+const arr = state[sid][field];
+const idx = arr.indexOf(val);
+if (idx >= 0) arr.splice(idx, 1); else arr.push(val);
+buildBlocks();
+}
+function setMemo(sid, val) {
+state[sid].memo = val;
+updateSummary();
+}
+
+function updateSummary() {
+// ピーク帯
+let maxA = -1, peakSlot = null;
+SLOTS.forEach(s => {
+const a = state[s.id].agitation;
+if (a !== null && a > maxA) { maxA = a; peakSlot = s; }
+});
+
+// 最高血圧帯
+const bpOrder = {“200〜”:6,“181〜200”:5,“161〜180”:4,“141〜160”:3,”〜140”:2,“測定せず”:1};
+let maxBP = 0, maxBPVal = null;
+SLOTS.forEach(s => {
+const b = state[s.id].bp;
+if (b && bpOrder[b] > maxBP) { maxBP = bpOrder[b]; maxBPVal = b; }
+});
+
+const allTriggers = Object.values(state).flatMap(r => r.triggers || []);
+const allCalms = Object.values(state).flatMap(r => r.calms || []);
+
+const hasSomething = maxA >= 0 || maxBPVal || allTriggers.length || allCalms.length;
+document.getElementById(‘live-summary’).style.display = hasSomething ? ‘grid’ : ‘none’;
+document.getElementById(‘sum-peak’).textContent = peakSlot ? peakSlot.time : ‘—’;
+document.getElementById(‘sum-bp’).textContent = maxBPVal || ‘—’;
+document.getElementById(‘sum-trigger’).textContent = allTriggers.length ? allTriggers.slice(0,2).join(’・’) : ‘—’;
+document.getElementById(‘sum-calm’).textContent = allCalms.length ? allCalms.slice(0,2).join(’・’) : ‘—’;
+}
+
+function saveRecord() {
+const date = document.getElementById(‘rec-date’).value;
+const nurse = document.getElementById(‘rec-nurse’).value.trim();
+if (!date) { showToast(‘記録日を入力してください’); return; }
+
+const records = getRecords();
+const id = Date.now().toString();
+records[id] = { id, date, nurse, slots: JSON.parse(JSON.stringify(state)), savedAt: new Date().toISOString() };
+localStorage.setItem(‘mediluna-records’, JSON.stringify(records));
+
+const btn = document.getElementById(‘save-btn’);
+btn.textContent = ‘✓ 保存しました’;
+btn.classList.add(‘saved’);
+showToast(‘記録を保存しました’);
+setTimeout(() => {
+btn.textContent = ‘この記録を保存する’;
+btn.classList.remove(‘saved’);
+}, 2000);
+
+initState();
+buildBlocks();
+document.getElementById(‘rec-date’).value = getTodayStr();
+}
+
+function getRecords() {
+try { return JSON.parse(localStorage.getItem(‘mediluna-records’) || ‘{}’); } catch { return {}; }
+}
+
+function renderHistory() {
+const records = getRecords();
+const list = document.getElementById(‘history-list’);
+const sorted = Object.values(records).sort((a,b) => b.date.localeCompare(a.date));
+if (!sorted.length) {
+list.innerHTML = ‘<div class="empty">まだ記録がありません</div>’;
+return;
+}
+list.innerHTML = sorted.map(r => {
+let maxA = -1, peakSlot = null;
+SLOTS.forEach(s => {
+const a = r.slots[s.id]?.agitation;
+if (a !== null && a !== undefined && a > maxA) { maxA = a; peakSlot = s; }
+});
+const emoji = [‘😊’,‘😐’,‘😟’,‘😰’][maxA] || ‘—’;
+const allCalms = Object.values(r.slots).flatMap(s => s.calms || []);
+return `<div class="rec-item" onclick="viewRecord('${r.id}')"> <div style="display:flex;justify-content:space-between;align-items:center"> <span class="rec-date">${formatDate(r.date)}</span> <button class="del-btn" onclick="deleteRecord(event,'${r.id}')">削除</button> </div> <div class="rec-nurse">${r.nurse || '担当者不明'}</div> ${peakSlot ? `<div class="rec-peak">${emoji} ピーク: ${peakSlot.time}</div>`: ''} ${allCalms.length ?`<div class="rec-meta">落ち着き: ${allCalms.slice(0,2).join(’・’)}</div>` : ''} </div>`;
+}).join(’’);
+}
+
+function viewRecord(id) {
+const records = getRecords();
+const r = records[id];
+if (!r) return;
+state = JSON.parse(JSON.stringify(r.slots));
+document.getElementById(‘rec-date’).value = r.date;
+document.getElementById(‘rec-nurse’).value = r.nurse || ‘’;
+buildBlocks();
+switchTab(‘record’);
+showToast(‘記録を読み込みました（編集可能）’);
+}
+
+function deleteRecord(e, id) {
+e.stopPropagation();
+if (!confirm(‘この記録を削除しますか？’)) return;
+const records = getRecords();
+delete records[id];
+localStorage.setItem(‘mediluna-records’, JSON.stringify(records));
+renderHistory();
+showToast(‘削除しました’);
+}
+
+function renderInsight() {
+const records = Object.values(getRecords());
+const el = document.getElementById(‘insight-content’);
+if (records.length < 2) {
+el.innerHTML = ‘<div class="empty">2件以上の記録が溜まると<br>パターン分析が表示されます</div>’;
+return;
+}
+
+// 時間帯別不穏集計
+const slotAgit = {};
+SLOTS.forEach(s => { slotAgit[s.id] = []; });
+records.forEach(r => {
+SLOTS.forEach(s => {
+const a = r.slots[s.id]?.agitation;
+if (a !== null && a !== undefined) slotAgit[s.id].push(a);
+});
+});
+
+const slotAvg = SLOTS.map(s => ({
+slot: s,
+avg: slotAgit[s.id].length ? slotAgit[s.id].reduce((a,b)=>a+b,0)/slotAgit[s.id].length : 0,
+n: slotAgit[s.id].length,
+})).sort((a,b) => b.avg - a.avg);
+
+// トリガー集計
+const trigCount = {};
+records.forEach(r => {
+Object.values(r.slots).forEach(s => {
+(s.triggers||[]).forEach(t => { trigCount[t] = (trigCount[t]||0)+1; });
+});
+});
+const topTriggers = Object.entries(trigCount).sort((a,b)=>b[1]-a[1]).slice(0,4);
+
+// 落ち着ききっかけ集計
+const calmCount = {};
+records.forEach(r => {
+Object.values(r.slots).forEach(s => {
+(s.calms||[]).forEach(c => { calmCount[c] = (calmCount[c]||0)+1; });
+});
+});
+const topCalms = Object.entries(calmCount).sort((a,b)=>b[1]-a[1]).slice(0,4);
+
+el.innerHTML = `<div class="card" style="margin-bottom:12px"> <div class="card-head" style="background:#C0392B10"> <span style="font-weight:800;font-size:14px">🔴 不穏が多い時間帯 TOP3</span> </div> <div class="card-body"> ${slotAvg.slice(0,3).map((item,i) =>`
+<div style="display:flex;align-items:center;gap:10px;padding:4px 0">
+<span style="font-size:13px;font-weight:700;color:var(--sub);width:20px">${i+1}</span>
+<div style="flex:1">
+<div style="font-size:13px;font-weight:700">${item.slot.time}</div>
+<div style="font-size:11px;color:var(--sub)">${item.slot.tag} ・ ${item.n}件の記録</div>
+</div>
+<div style="display:flex;gap:2px">
+${Array(4).fill(0).map((_,j) => ` <div style="width:10px;height:10px;border-radius:2px;background:${j < Math.round(item.avg) ? 'var(--red)' : '#eee'}"></div>`).join(’’)}
+</div>
+</div>`).join(’<div class="divider"></div>’)}
+</div>
+</div>
+
+```
+<div class="card" style="margin-bottom:12px">
+  <div class="card-head" style="background:#E8A83810">
+    <span style="font-weight:800;font-size:14px">⚡ よく見られる不穏のきっかけ</span>
+  </div>
+  <div class="card-body">
+    ${topTriggers.length ? topTriggers.map(([t,n]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">
+        <span style="font-size:13px">${t}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--amber)">${n}回</span>
+      </div>`).join('<div class="divider"></div>') : '<div style="color:var(--sub);font-size:13px">まだデータが少ないです</div>'}
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:12px">
+  <div class="card-head" style="background:#5A8A6810">
+    <span style="font-weight:800;font-size:14px">🟢 効果的だった対応</span>
+  </div>
+  <div class="card-body">
+    ${topCalms.length ? topCalms.map(([c,n]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">
+        <span style="font-size:13px">${c}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--green)">${n}回</span>
+      </div>`).join('<div class="divider"></div>') : '<div style="color:var(--sub);font-size:13px">まだデータが少ないです</div>'}
+  </div>
+</div>
+
+<div style="text-align:center;font-size:11px;color:var(--sub);padding:8px">
+  ${records.length}件の記録を分析しています
+</div>`;
+```
+
+}
+
+function switchTab(tab) {
+[‘record’,‘history’,‘insight’].forEach(t => {
+document.getElementById(‘page-’+t).classList.toggle(‘active’, t===tab);
+document.getElementById(‘tab-’+t).classList.toggle(‘active’, t===tab);
+});
+if (tab === ‘history’) renderHistory();
+if (tab === ‘insight’) renderInsight();
+}
+
+function showToast(msg) {
+const t = document.getElementById(‘toast’);
+t.textContent = msg;
+t.classList.add(‘show’);
+setTimeout(() => t.classList.remove(‘show’), 2200);
+}
+
+function getTodayStr() {
+return new Date().toISOString().slice(0,10);
+}
+
+function formatDate(str) {
+if (!str) return ‘—’;
+const d = new Date(str + ‘T00:00:00’);
+const days = [‘日’,‘月’,‘火’,‘水’,‘木’,‘金’,‘土’];
+return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${days[d.getDay()]}）`;
+}
+
+// 初期化
+initState();
+document.getElementById(‘rec-date’).value = getTodayStr();
+buildBlocks();
+</script>
+
+</body>
+</html>
