@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="夜間不穏記録">
-<title>夜間不穏 観察シート | Mediluna</title>
+<meta name="apple-mobile-web-app-title" content="恵比寿M様記録">
+<title>恵比寿M様 夜間様子記録</title>
 <style>
   :root {
     --red: #C0392B;
@@ -26,7 +26,7 @@
     font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
+    min-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
     padding-bottom: 80px;
   }
 
@@ -52,7 +52,7 @@ gap: 5px;
 }
 .nav-tab.active { color: var(–red); border-bottom-color: var(–red); }
 
-.page { display: none; padding: 16px; }
+.page { display: none; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .page.active { display: block; }
 
 /* カード */
@@ -256,8 +256,8 @@ z-index: 999;
 
 <div class="page active" id="page-record">
   <div class="page-head">
-    <div class="brand">MEDILUNA 訪問看護</div>
-    <div class="title">夜間不穏 観察シート</div>
+    <div class="brand">恵比寿M様</div>
+    <div class="title">夜間様子記録</div>
   </div>
 
   <div class="form-row">
@@ -302,7 +302,7 @@ z-index: 999;
 
 <div class="page" id="page-history">
   <div class="page-head">
-    <div class="brand">MEDILUNA 訪問看護</div>
+    <div class="brand">恵比寿M様</div>
     <div class="title">記録履歴</div>
   </div>
   <div id="history-list"></div>
@@ -312,7 +312,7 @@ z-index: 999;
 
 <div class="page" id="page-insight">
   <div class="page-head">
-    <div class="brand">MEDILUNA 訪問看護</div>
+    <div class="brand">恵比寿M様</div>
     <div class="title">パターン分析</div>
   </div>
   <div id="insight-content"></div>
